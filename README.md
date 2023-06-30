@@ -1,1 +1,1 @@
-# sonic-pi-andaluza
+This is my Sonic PI version of Granados' Spanish Dance No. 5 Andaluza (work in progress)
