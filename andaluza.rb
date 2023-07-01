@@ -100,9 +100,9 @@ middle = [
   
   #8
   nil,
-  [[:a3, :b3]],
+  [[:c4, :d4]],
   nil,
-  [[:g3, :b3]],
+  [[:g3, :b3, :d4]],
   nil,
   [[:g3, :b3]],
   nil,
@@ -112,6 +112,36 @@ middle = [
   nil,
   [[:g3, :b3]],
   
+  #9
+  nil,
+  [[:a3, :d4]],
+  nil,
+  [[:a3, :d4]],
+  nil,
+  [[:a3, :d4]],
+  nil,
+  [[:a3, :d4]],
+  nil,
+  [[:a3, :d4]],
+  nil,
+  [[:a3, :d4]],
+
+  #10
+  nil,
+  [[:g3, :c4]],
+  nil,
+  [[:g3, :c4]],
+  nil,
+  [[:g3, :c4]],
+  nil,
+  [[:g3, :c4]],
+  nil,
+  [[:g3, :c4]],
+  nil,
+  [[:g3, :c4]],
+
+  #11
+  [nil, 12],
 ]
 
 # нижняя партия
@@ -189,6 +219,22 @@ lower = [
   [:d3,  2],
   [:a3,  2],
   [:a3,  2],
+
+  # 10
+  [:c3,  2],
+  [:e3,  2],
+  [:c3,  2],
+  [:e3,  2],
+  [:c3,  2],
+  [:a2,  2],
+
+  :e2,
+  :b2, :g3,
+  :b2, :g3,
+  :b2, :g3,
+  :b2, :g3,
+  :b2, :g3,
+  :b2,
 ]
 
 
@@ -258,11 +304,10 @@ main = [
   
   #11
   :g3,
-  [:b3, 11],
+  [:b4, 11],
 ]
 
-define :play_melody_ do |m, s = :pluck|
-  use_synth s if s
+define :play_melody_ do |m|
   amp = 1 # громкость
   pan = 0 # баланс
   add = 0 # временная добавка громкости
@@ -324,16 +369,35 @@ define :play_melody_ do |m, s = :pluck|
   }
 end;
 
-with_fx :reverb, mix: 0.7 do
+define :play_main_ do 
   in_thread do
-    play_melody_ lower, :piano
-  end
-  
-  in_thread do
-    play_melody_ middle #, :piano
+    use_synth :pluck
+    with_fx :reverb, mix: 0.76 do
+      play_melody_ main
+    end
   end
 end
 
-with_fx :reverb, mix: 0.76 do
-  play_melody_ main
+define :play_lower_ do 
+  in_thread do
+    use_synth :piano
+    with_fx :reverb, mix: 0.7 do
+      play_melody_ lower
+    end
+  end
 end
+
+define :play_middle_ do 
+  in_thread do
+    use_synth :pluck
+    with_fx :reverb, mix: 0.7 do
+      play_melody_ middle
+    end
+  end
+end
+
+play_lower_
+play_middle_
+play_main_
+
+#play_melody_ []
