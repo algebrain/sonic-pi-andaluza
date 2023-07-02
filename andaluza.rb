@@ -42,7 +42,7 @@ ch123 = [ *ch12, *ch12, *ch12, *ch12, *ch12 ]
 
 lower = [
   [:pan, -0.7],
-
+  
   #1 /0
   [:amp, 0.4], [:e2,  2], *ch123,
   #2 /12
@@ -75,15 +75,15 @@ main = [
   #2 /12
   [nil,  12],
   #3 /24
-  [nil,  9], [:amp, 0.4], [:cre, 1.0, 3], :e3, :fs3, :g3,
+  [nil,  9], [:cre, 0.7, 4, 1], :e3, :fs3, :g3,
   #4 /36
-  [:b3,  2], [:amp, 1], [:b3,  3], :a3, [:b3,  2], [:a3,  4],
+  [:b3,  2], [:b3,  3], :a3, [:b3,  2], [:a3,  4],
   #5 /48
   :b3, [:amp, 0.4], :eb3, [:amp, 0.6], [:e3,  10, 4],
   #6 /60
-  [nil,  9], [:amp, 0.4], [:cre, 1.0, 3], :e3, :fs3, :g3,
+  [nil,  9], [:cre, 0.7, 4, 1], :e3, :fs3, :g3,
   #7 /72
-  [:b3,  2], [:amp, 1], [:b3,  3], :a3, [:b3,  2], [:a3,  4],
+  [:b3,  2], [:b3,  3], :a3, [:b3,  2], [:a3,  4],
   #8 /84
   :b3, [:amp, 0.4], :fs3, [:amp, 0.6], [:d3,  10],
   #9 /96
@@ -100,11 +100,14 @@ fin = 0
 define :play_melody_ do |m|
   amp = 1 # громкость
   pan = 0 # баланс
+  set = 0 # временное значение громкости
   add = 0 # временная добавка громкости
-  ph =  0 # фаза крещендо/диминуэндо
+  per = 0 # временная добавка прооцента громкости
+  
   str = 0 # сила крещендо/диминуэндо
-  len = 0 # длительность крещендо/диминуэндо
-
+  dur = 0 # длительность крещендо/диминуэндо
+  tar = 0 # цель крещендо/диминуэндо
+  
   count = 0
   
   m.each { |n|
@@ -121,29 +124,38 @@ define :play_melody_ do |m|
       add, *r = rest
       next
     when :cre
-      str, len, *r = rest
+      str, dur, tar, *r = rest
+      amp = tar - str
       next
     when :dim
-      str, len, *r = rest
+      str, dur, tar, *r = rest
       str = -str
+      amp = tar - str
       next
     end
     
     t, rel, *r = rest
     t = t.nil? ? 1 : t
-
+    
     skip = (sta > 0 && count < sta) || (fin > 0 && count >= fin)
     count += t
     next if skip
-
+    
     if op.nil?
       sleep tf*t
       next
     end
     
     rel = rel.nil? ? 1 : rel
-    a = amp + add
-    a += ph*str*a
+    
+    a = amp
+    if set > 0
+      a = set
+    elsif per > 0
+      a += a*(per.to_f/100)
+    elsif add > 0
+      a += add
+    end
     
     if op.kind_of?(Array)
       play_chord(op, amp: a, pan: pan, release: rel)
@@ -152,13 +164,16 @@ define :play_melody_ do |m|
     end;
     
     add = 0
-    if str != 0
-      if ph >= 1
-        ph = 0
-        len = 0
+    per = 0
+    set = 0
+    
+    if tar > 0
+      if amp >= tar
+        dur = 0
         str = 0
+        tar = 0
       else
-        ph += t.to_f/len
+        amp += str.to_f/dur
       end
     end
     
@@ -166,7 +181,7 @@ define :play_melody_ do |m|
   }
 end;
 
-define :play_main_ do 
+define :play_main_ do
   in_thread do
     use_synth :pluck
     with_fx :reverb, mix: 0.76 do
@@ -175,7 +190,7 @@ define :play_main_ do
   end
 end
 
-define :play_lower_ do 
+define :play_lower_ do
   in_thread do
     use_synth :piano
     with_fx :reverb, mix: 0.7 do
@@ -184,7 +199,7 @@ define :play_lower_ do
   end
 end
 
-define :play_middle_ do 
+define :play_middle_ do
   in_thread do
     use_synth :pluck
     with_fx :reverb, mix: 0.7 do
