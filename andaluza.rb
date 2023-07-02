@@ -6,13 +6,15 @@ rb = 2 - ra
 t1 = 0.15   # время звучания щипка
 t2 = 2 - t1
 
+PAN = 0.2
+
 # нижняя партия
 
 ch12 = [ [:add, -0.1], [:as2, t1, ra], [:b2,  t2, rb] ]
 ch123 = [ *ch12, *ch12, *ch12, *ch12, *ch12 ]
 
 lower = [
-  [:pan, -0.7],
+  [:pan, -PAN],
   
   #1 /0
   [:amp, 0.4], [:e2,  2], *ch123,
@@ -40,7 +42,8 @@ lower = [
 
 # средняя партия
 middle = [
-  [:pan, 0.7],
+  [:coe, 0.2],
+  [:pan, PAN],
   [:amp, 0.3],
   
   # 1 /0
@@ -69,6 +72,8 @@ middle = [
 
 # главная партия
 main = [
+  [:coe, 0.45],
+
   #1 /0
   [nil,  12],
   #2 /12
@@ -97,6 +102,8 @@ sta = 0
 fin = 0
 
 define :play_melody_ do |m|
+  coe = 0.3 # coef
+
   amp = 1 # громкость
   pan = 0 # баланс
   set = 0 # временное значение громкости
@@ -127,6 +134,9 @@ define :play_melody_ do |m|
       next
     when :per
       per, *r = rest
+      next
+    when :coe
+      coe, *r = rest
       next
     when :cre
       str, dur, tar, *r = rest
@@ -163,9 +173,9 @@ define :play_melody_ do |m|
     end
     
     if op.kind_of?(Array)
-      play_chord(op, amp: a, pan: pan, release: rel)
+      play_chord(op, amp: a, pan: pan, release: rel, coef: coe)
     else
-      play op, amp: a, pan: pan, release: rel
+      play op, amp: a, pan: pan, release: rel, coef: coe
     end;
     
     add = 0
